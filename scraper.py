@@ -209,9 +209,26 @@ def get_ss(appid):
 
     raise Exception("Could not extract screenshot URL.")
 
+def get_store_response(app_id: str) -> requests.Response:
+    url = f"https://store.steampowered.com/app/{app_id}/"
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+    
+    # Simulate having passed the age check with a cookie
+    cookies = {
+        'birthtime': '568022401',     # Arbitrary date: Jan 1, 1988
+        'lastagecheckage': '1-January-1988',
+        'mature_content': '1',
+        'wants_mature_content': '1'
+    }
+
+    response = requests.get(url, headers=headers, cookies=cookies)
+    return response
+
 # Run and print
 if __name__ == "__main__":
-    print(has_store_page(101))
+    print(get_store_response(101))
     '''
     games = get_games_by_tag('free to play', 3)
 
