@@ -132,6 +132,37 @@ def ss_exists(appid):
     ss_url_dict[appid] = raw_url
     return True
 
+def has_store_page(app_id: str) -> bool:
+    url = f"https://store.steampowered.com/app/{app_id}/"
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+    
+    # Simulate having passed the age check with a cookie
+    cookies = {
+        'birthtime': '568022401',     # Arbitrary date: Jan 1, 1988
+        'lastagecheckage': '1-January-1988',
+        'mature_content': '1',
+        'wants_mature_content': '1'
+    }
+
+    response = requests.get(url, headers=headers, cookies=cookies)
+
+    if response.status_code != 200:
+        return False
+
+    # Check if redirected to an invalid page (like the homepage or error page)
+    final_url = response.url.lower()
+    if "app" not in final_url or "agecheck" in final_url:
+        return False
+
+    # Some nonexistent apps still return 200 with a "not found" message
+    if "app doesn't exist" in response.text.lower() or "application not found" in response.text.lower():
+        return False
+
+    return True
+
+
 def is_valid_app_id(app_id: str) -> bool:
     url = f'https://store.steampowered.com/api/appdetails?appids={app_id}'
     response = requests.get(url).json()
@@ -180,7 +211,7 @@ def get_ss(appid):
 
 # Run and print
 if __name__ == "__main__":
-    print(is_game(3089910))
+    print(has_store_page(101))
     '''
     games = get_games_by_tag('free to play', 3)
 
