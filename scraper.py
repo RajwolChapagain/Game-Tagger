@@ -9,66 +9,63 @@ class DataPoint:
         self.screenshot_url = screenshot_url
         self.tags = tags
 
-ss_url_dict = {}
-
 # <<< Getters
 
-# Fetch all Steam apps
-def get_all_steam_apps():
+# Return Type: list of dictionaries containing 2 string keys: 'appid' and 'name'
+#   'appid': int
+#   'name': str
+def get_all_steam_apps() -> list[dict]:
     url = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
     response = requests.get(url)
     data = response.json()
     return data['applist']['apps']
 
-# Returns a list of 'count' dictionary items containing AppId and Name
-#   of games with 'tag' in their tag list
+# Returns a list of 'count' dictionary items that describe games
+#   containing 'tag' in their tag list
 def get_games_by_tag(tag: str, count: int) -> list[dict]:
-    all_games = get_all_steam_apps()
     all_games_with_tag = []
 
     while len(all_games_with_tag) < count:
-        random_game = random.choice(all_games)
-        if is_eligible(random_game) and has_tag(tag, random_game):
+        random_game = get_random_steam_games(1)[0]
+        app_id = random_game['appid']
+        if has_tag(tag, app_id):
             all_games_with_tag.append(random_game)
 
     return all_games_with_tag
 
-# Returns: A 'count'-sized list of dictionary items each containing two keys:
-#           'name' and 'appid'
-def get_random_steam_games(count=5):
-    all_games = get_all_steam_apps()
+# Returns: A 'count'-sized list of dictionary items describing a game
+def get_random_steam_games(count:int = 1) -> list[dict]:
+    all_apps = get_all_steam_apps()
     
     random_games = []
     while len(random_games) < count:
-        random_game = random.choice(all_games)
+        random_game = random.choice(all_apps)
+        app_id = random_game['appid']
 
-        # Filter out non-game apps like sountracks
-        if is_game(random_game['appid']):
+        # Filter out invalid app ids and non-game apps like sountracks
+        if is_valid_app_id(app_id) and is_game(app_id):
             random_games.append(random_game)
 
     return random_games
-def get_ss(app_id: str):
-    response = get_store_response(app_id)
 
-    if response.status_code != 200:
-        raise Exception(f"Failed to fetch the page, status code: {response.status_code}")
+# Returns a string url of the first screenshot on an app's store page
+def get_ss_url(app_id: int) -> str:
+    response = get_store_response(app_id)
 
     soup = BeautifulSoup(response.text, 'html.parser')
 
     # Find all screenshot thumbnails
     screenshots = soup.find_all("a", {"class": "highlight_screenshot_link"})
-    if not screenshots:
+    if len(screenshots) == 0:
         raise Exception("No screenshots found on the store page.")
 
     # Get the href from the first screenshot
     first_screenshot_url = screenshots[0].get("href")
     
-    if first_screenshot_url:
-        return first_screenshot_url.split('?')[0]  # Remove any trailing query parameters
+    return first_screenshot_url.split('?')[0]  # Remove any trailing query parameters
 
-    raise Exception("Could not extract screenshot URL.")
-
-def get_store_response(app_id: str) -> requests.Response:
+# Fetches a response by adding appropriate headers and cookies
+def get_store_response(app_id: int) -> requests.Response:
     url = f"https://store.steampowered.com/app/{app_id}/"
     headers = {
         "User-Agent": "Mozilla/5.0"
@@ -76,7 +73,7 @@ def get_store_response(app_id: str) -> requests.Response:
     
     # Simulate having passed the age check with a cookie
     cookies = {
-        'birthtime': '568022401',     # Arbitrary date: Jan 1, 1988
+        'birthtime': '568022401',   # Arbitrary date: Jan 1, 1988
         'lastagecheckage': '1-January-1988',
         'mature_content': '1',
         'wants_mature_content': '1'
@@ -89,14 +86,8 @@ def get_store_response(app_id: str) -> requests.Response:
 
 # <<< Validity Checks
 
-def has_name(game):
-    if len(game['name'].strip()) == 0:
-        return False
-
-    return True
-
-def has_tag(tag: str, game: dict) -> bool:
-    response = get_store_response(game['appid'])
+def has_tag(tag: str, app_id: int) -> bool:
+    response = get_store_response(app_id)
 
     if response.status_code != 200:
         raise Exception(f"Failed to fetch the page, status code: {response.status_code}")
@@ -109,7 +100,7 @@ def has_tag(tag: str, game: dict) -> bool:
     all_tags = [link.text.lower() for link in all_tags_links]
     return tag.lower() in all_tags
 
-def has_ss(app_id):
+def has_ss(app_id: int) -> bool:
     response = get_store_response(app_id)
     if response.status_code != 200:
         return False
@@ -122,17 +113,9 @@ def has_ss(app_id):
         print(f"No screenshots found on the store page for AppId: {appid}")
         return False
 
-    # Get the href from the first screenshot
-    first_screenshot_url = screenshots[0].get("href")
-    
-    if len(first_screenshot_url) == 0:
-        return False
-
-    raw_url = first_screenshot_url.split('?')[0]  # Remove any trailing query parameters
-    ss_url_dict[appid] = raw_url
     return True
 
-def has_store_page(app_id: str) -> bool:
+def has_store_page(app_id: int) -> bool:
     response = get_store_response(app_id)
 
     if response.status_code != 200:
@@ -149,12 +132,12 @@ def has_store_page(app_id: str) -> bool:
 
     return True
 
-def is_valid_app_id(app_id: str) -> bool:
+def is_valid_app_id(app_id: int) -> bool:
     url = f'https://store.steampowered.com/api/appdetails?appids={app_id}'
     response = requests.get(url).json()
     return response[f'{app_id}']['success']
 
-def is_game(app_id: str) -> bool:
+def is_game(app_id: int) -> bool:
     url = f'https://store.steampowered.com/api/appdetails?appids={app_id}'
     response = requests.get(url).json()
     return response[f'{app_id}']['data']['type'] == 'game'
@@ -165,6 +148,8 @@ def is_game(app_id: str) -> bool:
 
 # Run and print
 if __name__ == "__main__":
-    print(get_store_response(101))
+    horror_games = get_games_by_tag('action', 10)
+    for game in horror_games:
+        print(game)
 
 # >>> Entry
