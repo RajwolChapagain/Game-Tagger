@@ -132,6 +132,11 @@ def ss_exists(appid):
     ss_url_dict[appid] = raw_url
     return True
 
+def is_valid_app_id(app_id: str) -> bool:
+    url = f'https://store.steampowered.com/api/appdetails?appids={app_id}'
+    response = requests.get(url).json()
+    return response[f'{app_id}']['success']
+
 def get_ss(appid):
     if appid in ss_url_dict:
         return ss_url_dict[appid]
@@ -170,6 +175,8 @@ def get_ss(appid):
 
 # Run and print
 if __name__ == "__main__":
+    print(is_valid_app_id(100))
+    '''
     games = get_games_by_tag('free to play', 3)
 
     for i, game in enumerate(games, 1):
@@ -180,3 +187,4 @@ if __name__ == "__main__":
             print(f'SS URL: {get_ss(game["appid"])}')
 
         print()
+    '''
