@@ -18,9 +18,18 @@ def get_all_steam_games():
     data = response.json()
     return data['applist']['apps']
 
-# Returns a list of dictionary items cont
+# Returns a list of 'count' dictionary items containing AppId and Name
+#   of games with 'tag' in their tag list
 def get_games_by_tag(tag: str, count: int) -> list[dict]:
-    pass
+    all_games = get_all_steam_games()
+    all_games_with_tag = []
+
+    while len(all_games_with_tag) < count:
+        random_game = random.choice(all_games)
+        if is_eligible(random_game) and has_tag(tag, random_game):
+            all_games_with_tag.append(random_game)
+
+    return all_games_with_tag
 
 # Returns: A 'count'-sized list of dictionary items each containing two keys:
 #           'name' and 'appid'
@@ -48,6 +57,33 @@ def has_name(game):
         return False
 
     return True
+
+def has_tag(tag: str, game: dict) -> bool:
+    app_id = game['appid']
+    url = f"https://store.steampowered.com/app/{app_id}/"
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+    
+    # Simulate having passed the age check with a cookie
+    cookies = {
+        'birthtime': '568022401',     # Arbitrary date: Jan 1, 1988
+        'lastagecheckage': '1-January-1988',
+        'mature_content': '1',
+        'wants_mature_content': '1'
+    }
+
+    response = requests.get(url, headers=headers, cookies=cookies)
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch the page, status code: {response.status_code}")
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    genres_container = soup.find("div", {"id": "genresAndManufacturer", "class": "details_block"})
+    genres_data_panel = genres_container.find('span')
+    all_tags_links = genres_data_panel.find_all('a')
+    all_tags = [link.text.lower() for link in all_tags_links]
+    return tag.lower() in all_tags
 
 def ss_exists(appid):
     url = f"https://store.steampowered.com/app/{appid}/"
@@ -134,7 +170,7 @@ def get_ss(appid):
 
 # Run and print
 if __name__ == "__main__":
-    games = get_random_steam_games(2)
+    games = get_games_by_tag('free to play', 3)
 
     for i, game in enumerate(games, 1):
         has_ss = ss_exists(game['appid'])
