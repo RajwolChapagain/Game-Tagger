@@ -59,21 +59,8 @@ def has_name(game):
     return True
 
 def has_tag(tag: str, game: dict) -> bool:
-    app_id = game['appid']
-    url = f"https://store.steampowered.com/app/{app_id}/"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-    
-    # Simulate having passed the age check with a cookie
-    cookies = {
-        'birthtime': '568022401',     # Arbitrary date: Jan 1, 1988
-        'lastagecheckage': '1-January-1988',
-        'mature_content': '1',
-        'wants_mature_content': '1'
-    }
+    response = get_store_response(game['appid'])
 
-    response = requests.get(url, headers=headers, cookies=cookies)
     if response.status_code != 200:
         raise Exception(f"Failed to fetch the page, status code: {response.status_code}")
 
@@ -85,21 +72,8 @@ def has_tag(tag: str, game: dict) -> bool:
     all_tags = [link.text.lower() for link in all_tags_links]
     return tag.lower() in all_tags
 
-def ss_exists(appid):
-    url = f"https://store.steampowered.com/app/{appid}/"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-    
-    # Simulate having passed the age check with a cookie
-    cookies = {
-        'birthtime': '568022401',     # Arbitrary date: Jan 1, 1988
-        'lastagecheckage': '1-January-1988',
-        'mature_content': '1',
-        'wants_mature_content': '1'
-    }
-
-    response = requests.get(url, headers=headers, cookies=cookies)
+def ss_exists(app_id):
+    response = get_store_response(app_id)
     if response.status_code != 200:
         return False
 
@@ -133,20 +107,7 @@ def ss_exists(appid):
     return True
 
 def has_store_page(app_id: str) -> bool:
-    url = f"https://store.steampowered.com/app/{app_id}/"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-    
-    # Simulate having passed the age check with a cookie
-    cookies = {
-        'birthtime': '568022401',     # Arbitrary date: Jan 1, 1988
-        'lastagecheckage': '1-January-1988',
-        'mature_content': '1',
-        'wants_mature_content': '1'
-    }
-
-    response = requests.get(url, headers=headers, cookies=cookies)
+    response = get_store_response(app_id)
 
     if response.status_code != 200:
         return False
@@ -168,29 +129,14 @@ def is_valid_app_id(app_id: str) -> bool:
     response = requests.get(url).json()
     return response[f'{app_id}']['success']
 
-def is_game(app_id:str) -> bool:
+def is_game(app_id: str) -> bool:
     url = f'https://store.steampowered.com/api/appdetails?appids={app_id}'
     response = requests.get(url).json()
     return response[f'{app_id}']['data']['type'] == 'game'
 
-def get_ss(appid):
-    if appid in ss_url_dict:
-        return ss_url_dict[appid]
+def get_ss(app_id: str):
+    response = get_store_response(app_id)
 
-    url = f"https://store.steampowered.com/app/{appid}/"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-    
-    # Simulate having passed the age check with a cookie
-    cookies = {
-        'birthtime': '568022401',     # Arbitrary date: Jan 1, 1988
-        'lastagecheckage': '1-January-1988',
-        'mature_content': '1',
-        'wants_mature_content': '1'
-    }
-
-    response = requests.get(url, headers=headers, cookies=cookies)
     if response.status_code != 200:
         raise Exception(f"Failed to fetch the page, status code: {response.status_code}")
 
