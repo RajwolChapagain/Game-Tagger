@@ -2,6 +2,13 @@ import requests
 import random
 from bs4 import BeautifulSoup
 
+class DataPoint:
+    def __init__(self, app_id, title, screenshot_url, tags):
+        self.app_id = app_id
+        self.title = title
+        self.screenshot_url = screenshot_url
+        self.tags = tags
+
 ss_url_dict = {}
 
 # Fetch all Steam apps
@@ -10,6 +17,10 @@ def get_all_steam_games():
     response = requests.get(url)
     data = response.json()
     return data['applist']['apps']
+
+# Returns a list of dictionary items cont
+def get_games_by_tag(tag: str, count: int) -> list[dict]:
+    pass
 
 # Returns: A 'count'-sized list of dictionary items each containing two keys:
 #           'name' and 'appid'
@@ -123,7 +134,7 @@ def get_ss(appid):
 
 # Run and print
 if __name__ == "__main__":
-    games = get_random_steam_games(50)
+    games = get_random_steam_games(2)
 
     for i, game in enumerate(games, 1):
         has_ss = ss_exists(game['appid'])
