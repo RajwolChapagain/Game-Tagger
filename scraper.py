@@ -77,17 +77,6 @@ def ss_exists(app_id):
     if response.status_code != 200:
         return False
 
-    # Check if redirected to an invalid page (like the homepage or error page)
-    final_url = response.url.lower()
-    if "app" not in final_url or "agecheck" in final_url:
-        return False
-
-    # Some nonexistent apps still return 200 with a "not found" message
-    if "app doesn't exist" in response.text.lower() or "application not found" in response.text.lower():
-        return False
-
-    # If we made it this far, that means there is a store page
-
     soup = BeautifulSoup(response.text, 'html.parser')
 
     # Find all screenshot thumbnails
