@@ -42,8 +42,8 @@ def get_random_steam_games(count=5):
     while len(random_games) < count:
         random_game = random.choice(all_games)
 
-        # Filter out ineligible entries
-        if is_eligible(random_game):
+        # Filter out non-game apps like sountracks
+        if is_game(random_game['appid']):
             random_games.append(random_game)
 
     return random_games
