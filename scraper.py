@@ -9,6 +9,20 @@ class DataPoint:
         self.screenshot_url = screenshot_url
         self.tags = tags
 
+tag_id = {
+        'Platformer': 1625,
+        'Action': 19,
+        'Casual': 597,
+        'Adventure': 21,
+        '2D': 3871,
+        '3D': 4191,
+        'Simulation': 599,
+        'Strategy': 9,
+        'RPG': 122,
+        'Puzzle': 1664,
+        'Horror': 1667
+}
+
 # <<< Getters
 
 # Return Type: list of dictionaries containing 2 string keys: 'appid' and 'name'
@@ -148,8 +162,11 @@ def is_game(app_id: int) -> bool:
 
 # Run and print
 if __name__ == "__main__":
+    print(tag_id['Horror'])
+    '''
     horror_games = get_games_by_tag('action', 10)
     for game in horror_games:
         print(game)
+    '''
 
 # >>> Entry
