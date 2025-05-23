@@ -9,7 +9,7 @@ class DataPoint:
         self.screenshot_url = screenshot_url
         self.tags = tags
 
-tag_id = {
+tag_dict = {
         'Platformer': 1625,
         'Action': 19,
         'Casual': 597,
@@ -37,15 +37,20 @@ def get_all_steam_apps() -> list[dict]:
 # Returns a list of 'count' dictionary items that describe games
 #   containing 'tag' in their tag list
 def get_games_by_tag(tag: str, count: int) -> list[dict]:
-    all_games_with_tag = []
+    tag_id = tag_dict[tag]
+    url = f'https://store.steampowered.com/search/results/?query=&start=1&count={count}&dynamic_data=&force_infinite=1&tags={tag_id}&supportedlang=english&ndl=1&snr=1_7_7_240_7&infinite=1'
+    
+    response = requests.get(url).json()
 
-    while len(all_games_with_tag) < count:
-        random_game = get_random_steam_games(1)[0]
-        app_id = random_game['appid']
-        if has_tag(tag, app_id):
-            all_games_with_tag.append(random_game)
+    soup = BeautifulSoup(response['results_html'], 'html.parser')
+    all_games_html = soup.find_all('a', class_='search_result_row ds_collapse_flag')
 
-    return all_games_with_tag
+    result = []
+    for item in all_games_html:
+        name = item.find('span', class_='title').text
+        app_id = item.get('data-ds-appid')
+        result.append({'name': name, 'app_id': app_id})
+    return result
 
 # Returns: A 'count'-sized list of dictionary items describing a game
 def get_random_steam_games(count:int = 1) -> list[dict]:
@@ -162,11 +167,8 @@ def is_game(app_id: int) -> bool:
 
 # Run and print
 if __name__ == "__main__":
-    print(tag_id['Horror'])
-    '''
-    horror_games = get_games_by_tag('action', 10)
+    horror_games = get_games_by_tag('Casual', 25)
     for game in horror_games:
         print(game)
-    '''
 
 # >>> Entry
