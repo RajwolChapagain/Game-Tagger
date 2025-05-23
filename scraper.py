@@ -1,5 +1,7 @@
+import os
 import requests
 import random
+import subprocess
 from bs4 import BeautifulSoup
 
 class DataPoint:
@@ -165,14 +167,21 @@ def is_game(app_id: int) -> bool:
 
 # >>> Validity Checks
 
+def download_ss(url: str, path: str):
+    subprocess.run(['curl', '-Ls', url, '-o', path])
+
 # <<< Entry
 
 # Run and print
 if __name__ == "__main__":
-    games = get_games_by_tag('Sports', 100)
-    for i, game in enumerate(games):
-        print(f'{i}. {game["name"]}')
-    
-    print()
+    for tag in tag_dict:
+        if not os.path.exists(tag):
+            os.mkdir(tag)
 
+        print(f'Downloading {tag} game screenshots...')
+        games = get_games_by_tag(tag, 100)
+        for i, game in enumerate(games, start=1):
+            app_id = game['app_id']
+            download_ss(get_ss_url(app_id), f'{tag}/{app_id}')
+            print(f'{i}/{len(games)}')
 # >>> Entry
