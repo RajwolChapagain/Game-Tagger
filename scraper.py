@@ -20,7 +20,8 @@ tag_dict = {
         'Strategy': 9,
         'RPG': 122,
         'Puzzle': 1664,
-        'Horror': 1667
+        'Horror': 1667,
+        'Sports': 701
 }
 
 # <<< Getters
@@ -168,8 +169,10 @@ def is_game(app_id: int) -> bool:
 
 # Run and print
 if __name__ == "__main__":
-    horror_games = get_games_by_tag('Casual', 100)
-    for game in horror_games:
-        print(game)
+    games = get_games_by_tag('Sports', 100)
+    for i, game in enumerate(games):
+        print(f'{i}. {game["name"]}')
+    
+    print()
 
 # >>> Entry
