@@ -36,6 +36,7 @@ def get_all_steam_apps() -> list[dict]:
 
 # Returns a list of 'count' dictionary items that describe games
 #   containing 'tag' in their tag list
+# TODO: Properly support queries outside of the 25-100 range
 def get_games_by_tag(tag: str, count: int) -> list[dict]:
     tag_id = tag_dict[tag]
     url = f'https://store.steampowered.com/search/results/?query=&start=1&count={count}&dynamic_data=&force_infinite=1&tags={tag_id}&supportedlang=english&ndl=1&snr=1_7_7_240_7&infinite=1'
@@ -167,7 +168,7 @@ def is_game(app_id: int) -> bool:
 
 # Run and print
 if __name__ == "__main__":
-    horror_games = get_games_by_tag('Casual', 25)
+    horror_games = get_games_by_tag('Casual', 100)
     for game in horror_games:
         print(game)
 
