@@ -2,6 +2,7 @@ import os
 import requests
 import random
 import subprocess
+from multiprocessing import Pool
 from bs4 import BeautifulSoup
 
 class DataPoint:
@@ -170,18 +171,28 @@ def is_game(app_id: int) -> bool:
 def download_ss(url: str, path: str):
     subprocess.run(['curl', '-Ls', url, '-o', path])
 
+def download_ss_for_tag(tag: str, count: int = 100):
+    if not os.path.exists(tag):
+        os.mkdir(tag)
+
+    print(f'Downloading {tag} game screenshots...')
+    games = get_games_by_tag(tag, count)
+    for i, game in enumerate(games, start=1):
+        app_id = game['app_id']
+        try:
+            ss_url = get_ss_url(app_id)
+        except:
+            print(f'Could not find ss url for {game["name"]} | app_id: {app_id}')
+            continue
+
+        download_ss(ss_url, f'{tag}/{app_id}')
+        print(f'{i}/{len(games)}')
+
 # <<< Entry
 
 # Run and print
 if __name__ == "__main__":
-    for tag in tag_dict:
-        if not os.path.exists(tag):
-            os.mkdir(tag)
+    with Pool(len(tag_dict)) as p:
+        p.map(download_ss_for_tag, tag_dict.keys())
 
-        print(f'Downloading {tag} game screenshots...')
-        games = get_games_by_tag(tag, 100)
-        for i, game in enumerate(games, start=1):
-            app_id = game['app_id']
-            download_ss(get_ss_url(app_id), f'{tag}/{app_id}')
-            print(f'{i}/{len(games)}')
 # >>> Entry
