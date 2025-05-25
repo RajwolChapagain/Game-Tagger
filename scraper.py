@@ -191,6 +191,8 @@ def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: in
         download_ss(ss_url, f'{tag_dir}/{app_id}')
         print(f'{tag}: {i}/{len(games)}')
 
+    print(f'\n✅ Download Complete: {tag}')
+
 # <<< Entry
 
 # Run and print
