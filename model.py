@@ -1,5 +1,32 @@
 import torch
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+class MultiLabelClassifier(nn.Module):
+    def __init__(self, in_count: int, hidden_count: int, out_count: int):
+        super().__init__()
 
-print(device)
+        self.conv_block_1 = nn.Sequential(
+                nn.Conv2d(in_count, hidden_count, kernel_size=3),
+                nn.ReLU(),
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=3)
+        )
+        self.conv_block_2 = nn.Sequential(
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.ReLU(),
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=2)
+        ) 
+        self.classifier = nn.Sequential(
+                nn.Flatten(),
+                nn.Linear(in_features=hidden_count,
+                          out_features=out_count)
+        )
+    
+
+    def forward(x: torch.Tensor) -> torch.Tensor:
+        x = self.conv_block_1(x)
+        x = self.conv_block_2(x)
+        x = self.classifier(x)
+        return x
