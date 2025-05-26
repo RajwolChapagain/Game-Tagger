@@ -170,7 +170,11 @@ def is_game(app_id: int) -> bool:
 # >>> Validity Checks
 
 def download_ss(url: str, path: str):
-    subprocess.run(['curl', '-Ls', url, '-o', path])
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(path, 'wb') as f:
+            for chunk in response.iter_content(1024):
+                f.write(chunk)
 
 def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: int = 100):
     tag_dir = download_dir / tag
@@ -188,7 +192,7 @@ def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: in
             print(f'Could not find ss url for {game["name"]} | app_id: {app_id}')
             continue
 
-        download_ss(ss_url, f'{tag_dir}/{app_id}')
+        download_ss(ss_url, f'{tag_dir}/{app_id}.jpeg')
         print(f'{tag}: {i}/{len(games)}')
 
     print(f'\n✅ Download Complete: {tag}')
