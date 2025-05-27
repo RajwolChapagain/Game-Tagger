@@ -62,6 +62,8 @@ def get_games_by_tag(tag: str, count: int) -> list[dict]:
             name = item.find('span', class_='title').text
             app_id = item.get('data-ds-appid')
             tag_ids = item.get('data-ds-tagids')
+            tag_ids = f'{tag_ids[:-1]},{tag_dict[tag]}]' # This is to ensure that the the tag list contains the tag passed in to this method
+                                                         # It will cause duplicate tag ids in some cases
             result.append({'name': name, 'app_id': app_id, 'tag_ids': tag_ids})
             if len(result) == count:
                 break
