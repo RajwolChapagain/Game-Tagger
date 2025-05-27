@@ -38,6 +38,7 @@
 
 			packages = with pkgs; [
 			  python3
+			  sqlite
 			] ++ python-packages;
 
 			shellHook = ''exec zsh'';
