@@ -1,10 +1,11 @@
 import os
-import requests
+import math
 import random
+import requests
 import subprocess
-from multiprocessing import Pool
-from bs4 import BeautifulSoup
 from pathlib import Path
+from bs4 import BeautifulSoup
+from multiprocessing import Pool
 
 class DataPoint:
     def __init__(self, app_id, title, screenshot_url, tags):
@@ -41,21 +42,29 @@ def get_all_steam_apps() -> list[dict]:
 
 # Returns a list of 'count' dictionary items that describe games
 #   containing 'tag' in their tag list
-# TODO: Properly support queries outside of the 25-100 range
 def get_games_by_tag(tag: str, count: int) -> list[dict]:
+    num_fetch = math.ceil(count / 100)
     tag_id = tag_dict[tag]
-    url = f'https://store.steampowered.com/search/results/?query=&start=1&count={count}&dynamic_data=&force_infinite=1&tags={tag_id}&supportedlang=english&ndl=1&snr=1_7_7_240_7&infinite=1'
-    
-    response = requests.get(url).json()
-
-    soup = BeautifulSoup(response['results_html'], 'html.parser')
-    all_games_html = soup.find_all('a', class_='search_result_row ds_collapse_flag')
 
     result = []
-    for item in all_games_html:
-        name = item.find('span', class_='title').text
-        app_id = item.get('data-ds-appid')
-        result.append({'name': name, 'app_id': app_id})
+
+    for fetch in range(num_fetch):
+        start = (fetch * 100) + 1
+        url = f'https://store.steampowered.com/search/results/?query=&start={start}&count={count}&dynamic_data=&force_infinite=1&tags={tag_id}&supportedlang=english&ndl=1&snr=1_7_7_240_7&infinite=1'
+
+        response = requests.get(url).json()
+
+        soup = BeautifulSoup(response['results_html'], 'html.parser')
+        all_games_html = soup.find_all('a', class_='search_result_row ds_collapse_flag')
+
+        for item in all_games_html:
+            name = item.find('span', class_='title').text
+            app_id = item.get('data-ds-appid')
+            result.append({'name': name, 'app_id': app_id})
+            if len(result) == count:
+                break
+
+
     return result
 
 # Returns: A 'count'-sized list of dictionary items describing a game
@@ -201,6 +210,7 @@ def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: in
 
 # Run and print
 if __name__ == "__main__":
+    '''
     data_dir = Path('./data')
 
     if not data_dir.exists():
@@ -208,5 +218,10 @@ if __name__ == "__main__":
 
     with Pool(len(tag_dict)) as p:
         p.map(download_ss_for_tag, tag_dict.keys())
+    '''
 
+    games = get_games_by_tag('Horror', 232)
+    print(len(games))
+    print(games[0])
+    print(games[-1])
 # >>> Entry
