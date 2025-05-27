@@ -1,6 +1,7 @@
 import os
 import math
 import random
+import sqlite3
 import requests
 import subprocess
 from pathlib import Path
@@ -19,8 +20,8 @@ tag_dict = {
         'Action': 19,
         'Casual': 597,
         'Adventure': 21,
-        '2D': 3871,
-        '3D': 4191,
+        'TwoD': 3871,
+        'ThreeD': 4191,
         'Simulation': 599,
         'Strategy': 9,
         'RPG': 122,
@@ -203,9 +204,48 @@ def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: in
             continue
 
         download_ss(ss_url, f'{tag_dir}/{app_id}.jpeg')
+        #write_tag_info_to_db(game)
         print(f'{tag}: {i}/{len(games)}')
 
     print(f'\n✅ Download Complete: {tag}')
+
+def write_tag_info_to_db(game) -> None:
+    connection = sqlite3.connect('data/tag_info.db')
+    cursor = connection.cursor()
+
+    tag_columns_description = ',\n'.join([f'{tag} BOOLEAN' for tag in tag_dict.keys()])
+
+    tuple_entry = (game['app_id'], )
+
+    # game['tag_ids'] returns a string in the format:
+    #   [123,456,78]. Hence, we need to remove the brackets
+    #   before calling .split
+    tag_list = game['tag_ids'][1:-1].split(',')
+
+    for tag in tag_dict.keys():
+        game_has_tag = str(tag_dict[tag]) in tag_list
+        tuple_entry += (int(game_has_tag), )
+
+    cursor.execute(
+        f'''
+        CREATE TABLE IF NOT EXISTS games (
+            app_id INTEGER PRIMARY KEY,
+            {tag_columns_description}
+        )
+        '''
+    )
+
+    placeholders = ','.join(['?'] * len(tuple_entry))
+
+    cursor.execute(
+        f'''
+        INSERT INTO games VALUES({placeholders})
+        ''', 
+        tuple_entry
+    )
+
+    connection.commit()
+    connection.close()
 
 # <<< Entry
 
@@ -221,8 +261,7 @@ if __name__ == "__main__":
         p.map(download_ss_for_tag, tag_dict.keys())
     '''
 
-    games = get_games_by_tag('Horror', 232)
-    print(len(games))
-    print(games[0])
-    print(games[-1])
+    games = get_games_by_tag('Action', 5)
+    for game in games:
+        write_tag_info_to_db(game)
 # >>> Entry
