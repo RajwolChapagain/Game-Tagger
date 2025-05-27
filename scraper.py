@@ -60,7 +60,8 @@ def get_games_by_tag(tag: str, count: int) -> list[dict]:
         for item in all_games_html:
             name = item.find('span', class_='title').text
             app_id = item.get('data-ds-appid')
-            result.append({'name': name, 'app_id': app_id})
+            tag_ids = item.get('data-ds-tagids')
+            result.append({'name': name, 'app_id': app_id, 'tag_ids': tag_ids})
             if len(result) == count:
                 break
 
