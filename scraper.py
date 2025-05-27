@@ -5,6 +5,7 @@ import sqlite3
 import requests
 import subprocess
 from pathlib import Path
+from functools import partial
 from bs4 import BeautifulSoup
 from multiprocessing import Pool
 
@@ -206,7 +207,7 @@ def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: in
             continue
 
         download_ss(ss_url, f'{tag_dir}/{app_id}.jpeg')
-        #write_tag_info_to_db(game)
+        write_tag_info_to_db(game)
         print(f'{tag}: {i}/{len(games)}')
 
     print(f'\n✅ Download Complete: {tag}')
@@ -231,7 +232,7 @@ def write_tag_info_to_db(game) -> None:
     cursor.execute(
         f'''
         CREATE TABLE IF NOT EXISTS games (
-            app_id INTEGER PRIMARY KEY,
+            app_id INTEGER,
             {tag_columns_description}
         )
         '''
@@ -253,17 +254,15 @@ def write_tag_info_to_db(game) -> None:
 
 # Run and print
 if __name__ == "__main__":
-    '''
     data_dir = Path('./data')
 
     if not data_dir.exists():
         os.mkdir(data_dir)
 
-    with Pool(len(tag_dict)) as p:
-        p.map(download_ss_for_tag, tag_dict.keys())
-    '''
+    games_per_tag = 300
 
-    games = get_games_by_tag('Action', 5)
-    for game in games:
-        write_tag_info_to_db(game)
+    with Pool(len(tag_dict)) as p:
+        download_w_tag_count = partial(download_ss_for_tag, count=games_per_tag)
+        p.map(download_w_tag_count, tag_dict.keys())
+
 # >>> Entry
