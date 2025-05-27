@@ -1,7 +1,8 @@
 import torch
+from torch import nn
 
 class MultiLabelClassifier(nn.Module):
-    def __init__(self, in_count: int, hidden_count: int, out_count: int):
+    def __init__(self, in_count: int, hidden_count: int, out_count: int) -> None:
         super().__init__()
 
         self.conv_block_1 = nn.Sequential(
@@ -20,12 +21,12 @@ class MultiLabelClassifier(nn.Module):
         ) 
         self.classifier = nn.Sequential(
                 nn.Flatten(),
-                nn.Linear(in_features=hidden_count,
+                nn.Linear(in_features=hidden_count * 18 * 18,
                           out_features=out_count)
         )
     
 
-    def forward(x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.conv_block_1(x)
         x = self.conv_block_2(x)
         x = self.classifier(x)
