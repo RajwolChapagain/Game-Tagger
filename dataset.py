@@ -10,7 +10,7 @@ class CustomDataset(Dataset):
         self.data_path = data_path
         self.db_path = data_path/db_file
         self.table = table
-        self.classes = CustomDataset.get_classes(self.db_path) 
+        self.classes = self.get_classes(self.db_path) 
         self.transform = transform
 
     def __len__(self) -> int:
@@ -48,7 +48,7 @@ class CustomDataset(Dataset):
 
         return (transformed_img, tag_info)
 
-    def get_classes(db_file: Path) -> list[str]:
+    def get_classes(self, db_file: Path) -> list[str]:
         connection = sqlite3.connect(db_file)
         cursor = connection.cursor()
 
