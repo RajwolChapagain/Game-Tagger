@@ -1,52 +1,51 @@
-import os
+import sqlite3
 import random
-from pathlib import Path
-from multiprocessing import Pool
+import sys
 
-def split_dir(dir: str, data_dir: Path = Path('./data')):
-    shuffled_image_files = os.listdir(f'{data_dir}/{dir}')
-    random.shuffle(shuffled_image_files)
-    num_images = len(shuffled_image_files)
-    num_train = int(split_ratio * num_images)
-    train_image_files = shuffled_image_files[:num_train]
-    test_image_files = shuffled_image_files[num_train:]
+# ---- Configuration ----
+DB_PATH = "data/tag_info.db"
+SOURCE_TABLE = "games"
+TRAIN_TABLE = "train"
+TEST_TABLE = "test"
+SPLIT_RATIO = 0.8  # 80% train, 20% test
 
-    split_train_dir = data_dir / 'train' / dir
-    split_test_dir = data_dir / 'test' / dir
+# ------------------------
+def main():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
 
-    if not split_train_dir.exists():
-        os.mkdir(split_train_dir)
+    # Fetch all data from the source table
+    cursor.execute(f"SELECT * FROM {SOURCE_TABLE}")
+    rows = cursor.fetchall()
 
-    if not split_test_dir.exists():
-        os.mkdir(split_test_dir)
+    # Get column names to recreate the schema
+    col_names = [description[0] for description in cursor.description]
+    columns_def = (f"{col_names[0]} INTEGER, " + ", ".join(f"{col} BOOLEAN" for col in col_names[1:]))
 
-    for file in train_image_files:
-        os.system(f'cp {data_dir}/{dir}/{file} {split_train_dir}')
 
-    for file in test_image_files:
-        os.system(f'cp {data_dir}/{dir}/{file} {split_test_dir}')
+    # Shuffle and split
+    random.shuffle(rows)
+    split_point = int(len(rows) * SPLIT_RATIO)
+    train_rows = rows[:split_point]
+    test_rows = rows[split_point:]
 
-if __name__ == '__main__':
-    data_dir = Path('./data')
+    # Drop old train/test tables if they exist
+    cursor.execute(f"DROP TABLE IF EXISTS {TRAIN_TABLE}")
+    cursor.execute(f"DROP TABLE IF EXISTS {TEST_TABLE}")
 
-    if not data_dir.exists():
-        print(f'Error: {data_dir} directory doesn\'t exist in the current directory')
-        exit()
+    # Create train and test tables
+    cursor.execute(f"CREATE TABLE {TRAIN_TABLE} ({columns_def})")
+    cursor.execute(f"CREATE TABLE {TEST_TABLE} ({columns_def})")
 
-    train_dir = data_dir / 'train'
-    test_dir = data_dir / 'test'
+    # Insert data into train and test tables
+    placeholders = ", ".join(["?"] * len(col_names))
+    cursor.executemany(f"INSERT INTO {TRAIN_TABLE} VALUES ({placeholders})", train_rows)
+    cursor.executemany(f"INSERT INTO {TEST_TABLE} VALUES ({placeholders})", test_rows)
 
-    if not train_dir.exists():
-        os.mkdir(train_dir)
-    
-    if not test_dir.exists():
-        os.mkdir(test_dir)
-    
-    split_ratio = 0.75
+    conn.commit()
+    conn.close()
+    print(f"Split complete. {len(train_rows)} train rows, {len(test_rows)} test rows.")
 
-    all_dirs = os.listdir(data_dir)
+if __name__ == "__main__":
+    main()
 
-    valid_dirs = [ dir for dir in all_dirs if (data_dir / dir) != train_dir and (data_dir / dir) != test_dir ]
-
-    with Pool(len(valid_dirs)) as p:
-        p.map(split_dir, valid_dirs)
