@@ -8,6 +8,7 @@ from PIL import Image
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from model import MultiLabelClassifier
+from dataset import CustomDataset
 
 def show_image(img_array) -> None:
     plt.title(f'Size: {len(img_array[0])} x {len(img_array)}')
@@ -17,23 +18,24 @@ def show_image(img_array) -> None:
 
 data_path = Path('data')
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+db_file = 'tag_info.db'
 
 data_transform = transforms.Compose([
                     transforms.Resize(size=(128,128)),
                     transforms.ToTensor()
                 ])
 
-train_data_path = data_path / 'train'
-test_data_path = data_path / 'test'
+train_data = CustomDataset(data_path=data_path,
+                           db_file=db_file,
+                           table='train',
+                           transform=data_transform)
 
-train_data = datasets.ImageFolder(root=train_data_path,
-                                  transform=data_transform,
-                                  target_transform=None)
+test_data = CustomDataset(data_path=data_path,
+                           db_file=db_file,
+                           table='test',
+                           transform=data_transform)
 
-test_data = datasets.ImageFolder(root=test_data_path,
-                                 transform=data_transform)
-
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 
 train_dataloader = DataLoader(dataset = train_data,
                               batch_size = BATCH_SIZE,
@@ -46,10 +48,10 @@ test_dataloader = DataLoader(dataset = test_data,
 
 model = MultiLabelClassifier(in_count = 3, hidden_count = 10, out_count = len(train_data.classes))
 
-loss_fn = torch.nn.CrossEntropyLoss()
+loss_fn = torch.nn.BCEWithLogitsLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
-epochs = 20
+epochs = 5
 
 model.to(device)
 
@@ -59,7 +61,7 @@ test_losses = []
 for epoch in range(epochs):
     model.train()
 
-    train_loss_per_batch = 0
+    train_loss = 0
 
     for batch in train_dataloader:
         inputs = batch[0]
@@ -70,37 +72,36 @@ for epoch in range(epochs):
 
         labels_pred = model(inputs)
 
-        train_loss = loss_fn(labels_pred, labels_truth)
+        loss = loss_fn(labels_pred, labels_truth)
+        train_loss += loss.item()
 
         optimizer.zero_grad()
 
-        train_loss.backward()
+        loss.backward()
 
         optimizer.step()
 
-        train_loss_per_batch += train_loss / 32
+    train_loss /= len(train_dataloader)
+    train_losses.append(train_loss)
 
-    ### Evaluation
-    model.eval()
+    test_loss = 0
 
-    test_loss_per_batch = 0
+    for i in range (len(test_dataloader)):
+        batch = next(iter(test_dataloader))
+        inputs = batch[0]
+        labels_truth = batch[1]
 
-    with torch.inference_mode():
-        for batch in test_dataloader:
-            inputs = batch[0]
-            labels_truth = batch[1]
+        inputs = inputs.to(device)
+        labels_truth = labels_truth.to(device)
 
-            inputs = inputs.to(device)
-            labels_truth = labels_truth.to(device)
+        labels_pred = model(inputs)
 
-            labels_pred = model(inputs)
+        loss = loss_fn(labels_pred, labels_truth)
+        test_loss += loss.item()
 
-            test_loss = loss_fn(labels_pred, labels_truth)
-            test_loss_per_batch += test_loss / 32
-
-    print(f'Epoch {epoch}: Training Loss: {train_loss_per_batch} | Testing Loss: {test_loss_per_batch}')
-    train_losses.append(train_loss_per_batch.cpu().detach().numpy())
-    test_losses.append(test_loss_per_batch.cpu().detach().numpy())
+    test_loss /= len(test_dataloader)
+    test_losses.append(test_loss)
+    print(f'Epoch {epoch}: Train Loss: {train_loss} | Test Loss: {test_loss}')
 
 plt.plot(train_losses)
 plt.plot(test_losses)
