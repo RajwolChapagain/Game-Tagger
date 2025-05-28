@@ -27,7 +27,7 @@ class CustomDataset(Dataset):
         connection.close()
         return length
 
-    def __getitem__(self, index: int) -> tuple[torch.Tensor, list[int]]:
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
         connection = sqlite3.connect(self.db_path)
         cursor = connection.cursor()
         
@@ -46,7 +46,7 @@ class CustomDataset(Dataset):
 
         connection.close()
 
-        return (transformed_img, tag_info)
+        return (transformed_img, torch.tensor(tag_info, dtype=torch.float32))
 
     def get_classes(self, db_file: Path) -> list[str]:
         connection = sqlite3.connect(db_file)
