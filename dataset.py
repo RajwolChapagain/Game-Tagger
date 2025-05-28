@@ -6,9 +6,10 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 
 class CustomDataset(Dataset):
-    def __init__(self, data_path: Path, db_file: str, transform=transforms.Compose([transforms.ToTensor()])) -> None:
+    def __init__(self, data_path: Path, db_file: str, table: str, transform=transforms.Compose([transforms.ToTensor()])) -> None:
         self.data_path = data_path
         self.db_path = data_path/db_file
+        self.table = table
         self.classes = CustomDataset.get_classes(self.db_path) 
         self.transform = transform
 
@@ -17,8 +18,8 @@ class CustomDataset(Dataset):
         cursor = connection.cursor()
 
         result = cursor.execute(
-                '''
-                SELECT count(*) from games;
+                f'''
+                SELECT count(*) from {self.table};
                 '''
         )
 
@@ -32,7 +33,7 @@ class CustomDataset(Dataset):
         
         result = cursor.execute(
                 f'''
-                SELECT * from games LIMIT 1 OFFSET {index};
+                SELECT * from {self.table} LIMIT 1 OFFSET {index};
                 '''
         )
 
@@ -52,8 +53,8 @@ class CustomDataset(Dataset):
         cursor = connection.cursor()
 
         result = cursor.execute(
-                '''
-                PRAGMA table_info(games);
+                f'''
+                PRAGMA table_info({self.table});
                 '''
         )
 
