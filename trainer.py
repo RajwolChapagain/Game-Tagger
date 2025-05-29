@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from model import MultiLabelClassifier
 from dataset import CustomDataset
+from torchmetrics.classification import MultilabelAccuracy, MultilabelPrecision, MultilabelRecall, MultilabelF1Score
 
 def show_image(img_array) -> None:
     plt.title(f'Size: {len(img_array[0])} x {len(img_array)}')
@@ -80,11 +81,16 @@ for epoch in range(epochs):
         loss.backward()
 
         optimizer.step()
-
+        
     train_loss /= len(train_dataloader)
     train_losses.append(train_loss)
 
     test_loss = 0
+
+    metric_acc = MultilabelAccuracy(num_labels=12, threshold=0.4).to(device)
+    metric_prec = MultilabelPrecision(num_labels=12, threshold=0.4).to(device)
+    metric_rec = MultilabelRecall(num_labels=12, threshold=0.4).to(device)
+    metric_f1 = MultilabelF1Score(num_labels=12, threshold=0.4).to(device)
 
     for i in range (len(test_dataloader)):
         batch = next(iter(test_dataloader))
@@ -98,11 +104,24 @@ for epoch in range(epochs):
 
         loss = loss_fn(labels_pred, labels_truth)
         test_loss += loss.item()
+        
+        accuracy = metric_acc(labels_pred, labels_truth)
+        precision = metric_prec(labels_pred, labels_truth)
+        recall = metric_rec(labels_pred, labels_truth)
+        f1_score = metric_f1(labels_pred, labels_truth)
+
+    accuracy = metric_acc.compute()
+    precision = metric_prec.compute()
+    recall = metric_rec.compute()
+    f1_score = metric_f1.compute()
 
     test_loss /= len(test_dataloader)
     test_losses.append(test_loss)
-    print(f'Epoch {epoch}: Train Loss: {train_loss} | Test Loss: {test_loss}')
 
-plt.plot(train_losses)
-plt.plot(test_losses)
+    print(f'Epoch {epoch}: Train Loss: {train_loss} | Test Loss: {test_loss}')
+    print(f'\t Accuracy: {accuracy} | Precision: {precision} | Recall: {recall} | F1 Score: {f1_score}')
+
+plt.plot(train_losses, label='train_loss')
+plt.plot(test_losses, label='test_loss')
+plt.legend()
 plt.show()
