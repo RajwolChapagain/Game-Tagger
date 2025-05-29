@@ -34,6 +34,7 @@
 				torchWithCuda
 				matplotlib
 				torchvision
+				torchmetrics
 			];
 
 			packages = with pkgs; [
