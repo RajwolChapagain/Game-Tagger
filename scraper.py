@@ -245,6 +245,18 @@ def write_tag_info_to_db(game) -> None:
     connection.commit()
     connection.close()
 
+def app_exists_in_db(app_id: int) -> bool:
+    connection = sqlite3.connect('data/tag_info.db')
+    cursor = connection.cursor()
+    
+    result = cursor.execute(
+            f'''
+            SELECT count(*) FROM games WHERE app_id={app_id}
+            '''
+    )
+
+    return result.fetchone()[0] > 0
+
 # <<< Entry
 
 # Run and print
@@ -254,7 +266,7 @@ if __name__ == "__main__":
     if not data_dir.exists():
         os.mkdir(data_dir)
 
-    games_per_tag = 300
+    games_per_tag = 20
 
     with Pool(len(tag_dict)) as p:
         download_w_tag_count = partial(download_ss_for_tag, count=games_per_tag)
