@@ -33,7 +33,7 @@ def get_pred(img: Image) -> list[str]:
     with torch.inference_mode():
         threshold = 0.35
         pred_logits = model(transformed_img.unsqueeze(0)) # Have to insert a dimension at start representing batch size of 1
-        pred_labels = (torch.sigmoid(pred_logits) >= threshold).int()
+        pred_labels = torch.round(torch.sigmoid(pred_logits))# >= threshold).int()
         keys = list(tag_dict.keys())
 
         pred_labels = pred_labels.flatten().tolist()
