@@ -47,7 +47,9 @@ test_dataloader = DataLoader(dataset = test_data,
                              batch_size = BATCH_SIZE,
                              num_workers = os.cpu_count())
 
-model = MultiLabelClassifier(in_count = 3, hidden_count = 10, out_count = len(train_data.classes))
+label_count = len(train_data.classes)
+
+model = MultiLabelClassifier(in_count = 3, hidden_count = 10, out_count = label_count)
 
 loss_fn = torch.nn.BCEWithLogitsLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
@@ -87,10 +89,10 @@ for epoch in range(epochs):
 
     test_loss = 0
 
-    metric_acc = MultilabelAccuracy(num_labels=12, threshold=0.4).to(device)
-    metric_prec = MultilabelPrecision(num_labels=12, threshold=0.4).to(device)
-    metric_rec = MultilabelRecall(num_labels=12, threshold=0.4).to(device)
-    metric_f1 = MultilabelF1Score(num_labels=12, threshold=0.4).to(device)
+    metric_acc = MultilabelAccuracy(num_labels=label_count, threshold=0.4).to(device)
+    metric_prec = MultilabelPrecision(num_labels=label_count, threshold=0.4).to(device)
+    metric_rec = MultilabelRecall(num_labels=label_count, threshold=0.4).to(device)
+    metric_f1 = MultilabelF1Score(num_labels=label_count, threshold=0.4).to(device)
 
     for i in range (len(test_dataloader)):
         batch = next(iter(test_dataloader))
