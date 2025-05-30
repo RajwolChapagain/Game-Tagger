@@ -17,16 +17,16 @@ class DataPoint:
         self.tags = tags
 
 tag_dict = {
-        'Platformer': 1625,
+        #'Platformer': 1625,
         'Action': 19,
-        'Casual': 597,
-        'Adventure': 21,
+        #'Casual': 597,
+        #'Adventure': 21,
         'TwoD': 3871,
         'ThreeD': 4191,
-        'Simulation': 599,
-        'Strategy': 9,
-        'RPG': 122,
-        'Puzzle': 1664,
+        #'Simulation': 599,
+        #'Strategy': 9,
+        #'RPG': 122,
+        #'Puzzle': 1664,
         'Horror': 1667,
         'Sports': 701
 }
