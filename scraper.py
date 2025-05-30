@@ -296,9 +296,9 @@ def app_exists_in_db(app_id: int) -> bool:
         return False
 
     result = cursor.execute(
-            f'''
-            SELECT count(*) FROM games WHERE app_id={app_id};
             '''
+            SELECT count(*) FROM games WHERE app_id= ?;
+            ''', (app_id,)
     )
 
     return result.fetchone()[0] > 0
