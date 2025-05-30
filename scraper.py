@@ -195,6 +195,9 @@ def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: in
     games = get_games_by_tag(tag, count)
     for i, game in enumerate(games, start=1):
         app_id = game['app_id']
+        if app_id is None:
+            print(f'AppId returned None for game {game["name"]}. Skipping...')
+            continue
 
         if app_exists_in_db(app_id):
             print(f'AppId {app_id} already exists in DB. Only modifying db entry')
@@ -294,7 +297,7 @@ def app_exists_in_db(app_id: int) -> bool:
 
     result = cursor.execute(
             f'''
-            SELECT count(*) FROM games WHERE app_id={app_id}
+            SELECT count(*) FROM games WHERE app_id={app_id};
             '''
     )
 
