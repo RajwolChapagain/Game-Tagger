@@ -14,7 +14,8 @@ model_name = 'default'
 
 model_save_path = model_path/model_name
 
-model = MultiLabelClassifier(in_count = 3, hidden_count = 10, out_count = 12)
+num_labels = 5
+model = MultiLabelClassifier(in_count = 3, hidden_count = 10, out_count = num_labels)
 
 model.load_state_dict(torch.load(model_save_path))
 
@@ -30,7 +31,7 @@ def get_pred(img: Image) -> list[str]:
 
     model.eval()
     with torch.inference_mode():
-        threshold = 0.25
+        threshold = 0.35
         pred_logits = model(transformed_img.unsqueeze(0)) # Have to insert a dimension at start representing batch size of 1
         pred_labels = (torch.sigmoid(pred_logits) >= threshold).int()
         keys = list(tag_dict.keys())
