@@ -5,10 +5,9 @@ from model import MultiLabelClassifier
 from pathlib import Path
 from PIL import Image
 from scraper import tag_dict
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from io import BytesIO
-
-app = FastAPI()
+from fastapi.middleware.cors import CORSMiddleware
 
 model_path = Path('models/')
 model_name = 'default'
@@ -43,8 +42,18 @@ def get_pred(img: Image) -> list[str]:
 
     return predicted_labels
 
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.post('/predict')
-async def predict(img_url: str):
-    response = requests.get(img_url)
-    img = Image.open(BytesIO(response.content))
-    return {'labels': get_pred(img)}
+async def predict(img: UploadFile = File(...)):
+    contents = await img.read()
+    img = Image.open(BytesIO(contents))
+    return {'tags': get_pred(img)}
