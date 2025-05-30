@@ -35,6 +35,7 @@
 				matplotlib
 				torchvision
 				torchmetrics
+				fastapi
 			];
 
 			packages = with pkgs; [
