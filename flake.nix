@@ -37,6 +37,7 @@
 				torchmetrics
 				fastapi
 				uvicorn
+				python-multipart
 			];
 
 			packages = with pkgs; [
