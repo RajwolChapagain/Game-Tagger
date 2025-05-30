@@ -36,6 +36,7 @@
 				torchvision
 				torchmetrics
 				fastapi
+				uvicorn
 			];
 
 			packages = with pkgs; [
