@@ -195,14 +195,20 @@ def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: in
     games = get_games_by_tag(tag, count)
     for i, game in enumerate(games, start=1):
         app_id = game['app_id']
-        try:
-            ss_url = get_ss_url(app_id)
-        except:
-            print(f'Could not find ss url for {game["name"]} | app_id: {app_id}')
-            continue
 
-        download_ss(ss_url, f'{download_dir}/{app_id}.jpeg')
-        write_tag_info_to_db(game)
+        if app_exists_in_db(app_id):
+            print(f'AppId {app_id} already exists in DB. Only modifying db entry')
+            update_tag_info(game)
+        else:
+            try:
+                ss_url = get_ss_url(app_id)
+            except:
+                print(f'Could not find ss url for {game["name"]} | app_id: {app_id}')
+                continue
+
+            download_ss(ss_url, f'{download_dir}/{app_id}.jpeg')
+            write_tag_info_to_db(game)
+
         print(f'{tag}: {i}/{len(games)}')
 
     print(f'✅ Download Complete: {tag}\n')
@@ -245,10 +251,47 @@ def write_tag_info_to_db(game) -> None:
     connection.commit()
     connection.close()
 
+def update_tag_info(game) -> None:
+    connection = sqlite3.connect('data/tag_info.db')
+    cursor = connection.cursor()
+
+    # game['tag_ids'] returns a string in the format:
+    #   [123,456,78]. Hence, we need to remove the brackets
+    #   before calling .split
+    tag_list = game['tag_ids'][1:-1].split(',')
+    tag_names = []
+
+    for tag in tag_dict.keys():
+        game_has_tag = str(tag_dict[tag]) in tag_list
+        if game_has_tag:
+            tag_names.append(tag)
+
+    set_str = '= 1, '.join(tag_names) + '= 1'
+
+    cursor.execute(
+        f'''
+        UPDATE games SET {set_str} WHERE app_id = {game["app_id"]};
+        '''
+    )
+
+    connection.commit()
+    connection.close()
+
 def app_exists_in_db(app_id: int) -> bool:
     connection = sqlite3.connect('data/tag_info.db')
     cursor = connection.cursor()
     
+    table_exists = cursor.execute(
+        '''
+        SELECT EXISTS (
+            SELECT 1 FROM sqlite_master WHERE type='table' AND name='games'
+        );
+        '''
+    )
+    
+    if table_exists.fetchone()[0] == 0:
+        return False
+
     result = cursor.execute(
             f'''
             SELECT count(*) FROM games WHERE app_id={app_id}
@@ -266,7 +309,7 @@ if __name__ == "__main__":
     if not data_dir.exists():
         os.mkdir(data_dir)
 
-    games_per_tag = 20
+    games_per_tag = 300
 
     with Pool(len(tag_dict)) as p:
         download_w_tag_count = partial(download_ss_for_tag, count=games_per_tag)
