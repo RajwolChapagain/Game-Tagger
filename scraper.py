@@ -191,11 +191,6 @@ def download_ss(url: str, path: str):
                 f.write(chunk)
 
 def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: int = 100):
-    tag_dir = download_dir / tag
-
-    if not tag_dir.exists():
-        os.mkdir(tag_dir)
-
     print(f'Downloading {tag} game screenshots...')
     games = get_games_by_tag(tag, count)
     for i, game in enumerate(games, start=1):
@@ -206,11 +201,11 @@ def download_ss_for_tag(tag: str, download_dir: Path = Path('./data'), count: in
             print(f'Could not find ss url for {game["name"]} | app_id: {app_id}')
             continue
 
-        download_ss(ss_url, f'{tag_dir}/{app_id}.jpeg')
+        download_ss(ss_url, f'{download_dir}/{app_id}.jpeg')
         write_tag_info_to_db(game)
         print(f'{tag}: {i}/{len(games)}')
 
-    print(f'\n✅ Download Complete: {tag}')
+    print(f'✅ Download Complete: {tag}\n')
 
 def write_tag_info_to_db(game) -> None:
     connection = sqlite3.connect('data/tag_info.db')
