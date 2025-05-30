@@ -1,9 +1,14 @@
 import torch
+import requests
 from torchvision import transforms
 from model import MultiLabelClassifier
 from pathlib import Path
 from PIL import Image
 from scraper import tag_dict
+from fastapi import FastAPI
+from io import BytesIO
+
+app = FastAPI()
 
 model_path = Path('models/')
 model_name = 'default'
@@ -37,3 +42,9 @@ def get_pred(img: Image) -> list[str]:
                 predicted_labels.append(label)
 
     return predicted_labels
+
+@app.post('/predict')
+async def predict(img_url: str):
+    response = requests.get(img_url)
+    img = Image.open(BytesIO(response.content))
+    return {'labels': get_pred(img)}
