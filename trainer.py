@@ -84,10 +84,10 @@ label_count = len(train_data.classes)
 
 model = MultiLabelClassifier(in_count = 3, hidden_count = 10, out_count = label_count)
 
-loss_fn = torch.nn.BCEWithLogitsLoss()
+loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(get_weights(data_path/db_file)).to(device))
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
-epochs = 5
+epochs = 10
 
 model.to(device)
 
@@ -122,14 +122,13 @@ for epoch in range(epochs):
 
     test_loss = 0
 
-    threshold = 0.4
-    metric_acc = MultilabelAccuracy(num_labels=label_count, threshold=threshold).to(device)
-    metric_prec = MultilabelPrecision(num_labels=label_count, threshold=threshold).to(device)
-    metric_rec = MultilabelRecall(num_labels=label_count, threshold=threshold).to(device)
-    metric_f1 = MultilabelF1Score(num_labels=label_count, threshold=threshold).to(device)
+    threshold = 0.5
+    metric_acc = MultilabelAccuracy(num_labels=label_count, threshold=threshold, average=None).to(device)
+    metric_prec = MultilabelPrecision(num_labels=label_count, threshold=threshold, average=None).to(device)
+    metric_rec = MultilabelRecall(num_labels=label_count, threshold=threshold, average=None).to(device)
+    metric_f1 = MultilabelF1Score(num_labels=label_count, threshold=threshold, average=None).to(device)
 
-    for i in range (len(test_dataloader)):
-        batch = next(iter(test_dataloader))
+    for i, batch in enumerate(test_dataloader):
         inputs = batch[0]
         labels_truth = batch[1]
 
@@ -138,7 +137,7 @@ for epoch in range(epochs):
 
         labels_pred = model(inputs)
         if i == 0:
-            print((torch.sigmoid(labels_pred[0]) > threshold).float())
+            print(f'Sample prediction: {(torch.sigmoid(labels_pred[0]) > threshold).float().cpu().tolist()}')
 
         loss = loss_fn(labels_pred, labels_truth)
         test_loss += loss.item()
@@ -157,7 +156,12 @@ for epoch in range(epochs):
     test_losses.append(test_loss)
 
     print(f'Epoch {epoch}: Train Loss: {train_loss} | Test Loss: {test_loss}')
-    print(f'\t Accuracy: {accuracy} | Precision: {precision} | Recall: {recall} | F1 Score: {f1_score}')
+    print(f'\tAccuracy: {accuracy.cpu().tolist()}')
+    print(f'\tPrecision: {precision.cpu().tolist()}')
+    print(f'\tRecall: {recall.cpu().tolist()}')
+    print(f'\tF1 Score: {f1_score.cpu().tolist()}')
+    print()
+
 
 plt.plot(train_losses, label='train_loss')
 plt.plot(test_losses, label='test_loss')
