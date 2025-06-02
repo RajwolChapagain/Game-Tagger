@@ -1,6 +1,7 @@
 import os
 import torch
 import random
+import sqlite3
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
@@ -16,6 +17,38 @@ def show_image(img_array) -> None:
     plt.axis('off')
     plt.imshow(img_array)
     plt.show()
+
+def get_weights(db: Path) -> list[float]:
+    connection = sqlite3.connect(db);
+    cursor = connection.cursor();
+
+    columns = cursor.execute(
+        '''
+        PRAGMA table_info(games);
+        '''
+    )
+
+    labels = [item[1] for item in columns.fetchall()][1:] # First column is app_id
+    
+    result = []
+
+    for label in labels:
+        num_positive = cursor.execute(
+            f'''
+            SELECT count(*) FROM games WHERE {label}=1;
+            '''
+        ).fetchone()[0]
+
+        num_negative = cursor.execute(
+            f'''
+            SELECT count(*) FROM games WHERE {label}=0;
+            '''
+        ).fetchone()[0]
+
+        result.append(float(num_negative) / float(num_positive))
+
+    connection.close()
+    return result
 
 data_path = Path('data')
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
