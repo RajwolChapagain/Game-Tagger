@@ -89,10 +89,11 @@ for epoch in range(epochs):
 
     test_loss = 0
 
-    metric_acc = MultilabelAccuracy(num_labels=label_count, threshold=0.4).to(device)
-    metric_prec = MultilabelPrecision(num_labels=label_count, threshold=0.4).to(device)
-    metric_rec = MultilabelRecall(num_labels=label_count, threshold=0.4).to(device)
-    metric_f1 = MultilabelF1Score(num_labels=label_count, threshold=0.4).to(device)
+    threshold = 0.4
+    metric_acc = MultilabelAccuracy(num_labels=label_count, threshold=threshold).to(device)
+    metric_prec = MultilabelPrecision(num_labels=label_count, threshold=threshold).to(device)
+    metric_rec = MultilabelRecall(num_labels=label_count, threshold=threshold).to(device)
+    metric_f1 = MultilabelF1Score(num_labels=label_count, threshold=threshold).to(device)
 
     for i in range (len(test_dataloader)):
         batch = next(iter(test_dataloader))
@@ -103,6 +104,8 @@ for epoch in range(epochs):
         labels_truth = labels_truth.to(device)
 
         labels_pred = model(inputs)
+        if i == 0:
+            print((torch.sigmoid(labels_pred[0]) > threshold).float())
 
         loss = loss_fn(labels_pred, labels_truth)
         test_loss += loss.item()
