@@ -6,25 +6,31 @@ class MultiLabelClassifier(nn.Module):
         super().__init__()
 
         self.conv_block_1 = nn.Sequential(
-                nn.Conv2d(in_count, hidden_count, kernel_size=3),
+                nn.Conv2d(in_count, hidden_count, kernel_size=3, padding=1),
+                nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
                 nn.Dropout(p=0.2),
-                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3, padding=1),
+                nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size=2, stride=2)
         )
         self.conv_block_2 = nn.Sequential(
-                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3, padding=1),
+                nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
                 nn.Dropout(p=0.2),
-                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3, padding=1),
+                nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size=2, stride=2)
         ) 
         self.conv_block_3 = nn.Sequential(
-                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3, padding=1),
+                nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
-                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3, padding=1),
+                nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
                 nn.Dropout(p=0.2),
                 nn.MaxPool2d(kernel_size=2, stride=2)
@@ -32,7 +38,7 @@ class MultiLabelClassifier(nn.Module):
         self.classifier = nn.Sequential(
                 nn.Flatten(),
                 nn.Dropout(p=0.2),
-                nn.Linear(in_features=hidden_count * 12 * 12,
+                nn.Linear(in_features=hidden_count * 32 * 32,
                           out_features=out_count)
         )
     
