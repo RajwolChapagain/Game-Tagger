@@ -24,7 +24,7 @@ def get_weights(db: Path) -> list[float]:
 
     columns = cursor.execute(
         '''
-        PRAGMA table_info(games);
+        PRAGMA table_info(train);
         '''
     )
 
@@ -35,13 +35,13 @@ def get_weights(db: Path) -> list[float]:
     for label in labels:
         num_positive = cursor.execute(
             f'''
-            SELECT count(*) FROM games WHERE {label}=1;
+            SELECT count(*) FROM train WHERE {label}=1;
             '''
         ).fetchone()[0]
 
         num_negative = cursor.execute(
             f'''
-            SELECT count(*) FROM games WHERE {label}=0;
+            SELECT count(*) FROM train WHERE {label}=0;
             '''
         ).fetchone()[0]
 
@@ -55,7 +55,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 db_file = 'tag_info.db'
 
 data_transform = transforms.Compose([
-                    transforms.Resize(size=(128,128)),
+                    transforms.Resize(size=(256,256)),
                     transforms.ToTensor()
                 ])
 
@@ -69,7 +69,7 @@ test_data = CustomDataset(data_path=data_path,
                            table='test',
                            transform=data_transform)
 
-BATCH_SIZE = 64
+BATCH_SIZE = 8
 
 train_dataloader = DataLoader(dataset = train_data,
                               batch_size = BATCH_SIZE,
@@ -82,10 +82,10 @@ test_dataloader = DataLoader(dataset = test_data,
 
 label_count = len(train_data.classes)
 
-model = MultiLabelClassifier(in_count = 3, hidden_count = 10, out_count = label_count)
+model = MultiLabelClassifier(in_count = 3, hidden_count = 128, out_count = label_count)
 
 loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(get_weights(data_path/db_file)).to(device))
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
 epochs = 10
 
