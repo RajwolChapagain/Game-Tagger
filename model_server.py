@@ -10,18 +10,19 @@ from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 
 model_path = Path('models/')
-model_name = 'default'
+model_name = 'd1000e5.pt'
 
 model_save_path = model_path/model_name
 
-num_labels = 5
-model = MultiLabelClassifier(in_count = 3, hidden_count = 10, out_count = num_labels)
+num_labels = 12
+model = MultiLabelClassifier(in_count = 3, hidden_count = 128, out_count = num_labels)
 
 model.load_state_dict(torch.load(model_save_path))
 
 def get_pred(img: Image) -> list[str]:
     data_transform = transforms.Compose([
-        transforms.Resize(size=(128, 128)),
+        transforms.Lambda(lambda img: img.convert("RGB")),
+        transforms.Resize(size=(256, 256)),
         transforms.ToTensor()
     ])
 
@@ -31,7 +32,7 @@ def get_pred(img: Image) -> list[str]:
 
     model.eval()
     with torch.inference_mode():
-        threshold = 0.35
+        threshold = 0.5
         pred_logits = model(transformed_img.unsqueeze(0)) # Have to insert a dimension at start representing batch size of 1
         pred_labels = torch.round(torch.sigmoid(pred_logits))# >= threshold).int()
         keys = list(tag_dict.keys())
