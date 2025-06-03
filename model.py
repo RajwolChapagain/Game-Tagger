@@ -8,26 +8,34 @@ class MultiLabelClassifier(nn.Module):
         self.conv_block_1 = nn.Sequential(
                 nn.Conv2d(in_count, hidden_count, kernel_size=3),
                 nn.ReLU(),
+                nn.Dropout(p=0.2),
                 nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
                 nn.ReLU(),
-                nn.MaxPool2d(kernel_size=3)
+                nn.MaxPool2d(kernel_size=2, stride=2)
         )
         self.conv_block_2 = nn.Sequential(
                 nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
                 nn.ReLU(),
+                nn.Dropout(p=0.2),
                 nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
                 nn.ReLU(),
-                nn.MaxPool2d(kernel_size=2)
+                nn.MaxPool2d(kernel_size=2, stride=2)
+        ) 
+        self.conv_block_3 = nn.Sequential(
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.ReLU(),
+                nn.Conv2d(hidden_count, hidden_count, kernel_size=3),
+                nn.ReLU(),
+                nn.Dropout(p=0.2),
+                nn.MaxPool2d(kernel_size=2, stride=2)
         ) 
         self.classifier = nn.Sequential(
                 nn.Flatten(),
-                nn.Linear(in_features=hidden_count * 18 * 18,
+                nn.Dropout(p=0.2),
+                nn.Linear(in_features=hidden_count * 12 * 12,
                           out_features=out_count)
         )
     
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.conv_block_1(x)
-        x = self.conv_block_2(x)
-        x = self.classifier(x)
-        return x
+        return self.classifier(self.conv_block_3(self.conv_block_2(self.conv_block_1(x))))
