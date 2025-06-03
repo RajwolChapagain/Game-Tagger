@@ -55,6 +55,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 db_file = 'tag_info.db'
 
 data_transform = transforms.Compose([
+                    transforms.Lambda(lambda img: img.convert("RGB")),
                     transforms.Resize(size=(256,256)),
                     transforms.ToTensor()
                 ])
@@ -87,7 +88,7 @@ model = MultiLabelClassifier(in_count = 3, hidden_count = 128, out_count = label
 loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(get_weights(data_path/db_file)).to(device))
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-epochs = 10
+epochs = 15
 
 model.to(device)
 
@@ -99,10 +100,7 @@ for epoch in range(epochs):
 
     train_loss = 0
 
-    for batch in train_dataloader:
-        inputs = batch[0]
-        labels_truth = batch[1]
-
+    for inputs, labels_truth in train_dataloader:
         inputs = inputs.to(device)
         labels_truth = labels_truth.to(device)
 
@@ -128,16 +126,14 @@ for epoch in range(epochs):
     metric_rec = MultilabelRecall(num_labels=label_count, threshold=threshold, average=None).to(device)
     metric_f1 = MultilabelF1Score(num_labels=label_count, threshold=threshold, average=None).to(device)
 
-    for i, batch in enumerate(test_dataloader):
-        inputs = batch[0]
-        labels_truth = batch[1]
-
+    for i, (inputs, labels_truth) in enumerate(test_dataloader):
         inputs = inputs.to(device)
         labels_truth = labels_truth.to(device)
 
         labels_pred = model(inputs)
         if i == 0:
-            print(f'Sample prediction: {(torch.sigmoid(labels_pred[0]) > threshold).float().cpu().tolist()}')
+            print(f'Sample prediction    : {(torch.sigmoid(labels_pred[0]) > threshold).float().cpu().tolist()}')
+            print(f'Corresponding truth : {labels_truth[0].cpu().tolist()}')
 
         loss = loss_fn(labels_pred, labels_truth)
         test_loss += loss.item()
