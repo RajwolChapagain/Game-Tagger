@@ -17,16 +17,16 @@ class DataPoint:
         self.tags = tags
 
 tag_dict = {
-        #'Platformer': 1625,
+        'Platformer': 1625,
         'Action': 19,
-        #'Casual': 597,
-        #'Adventure': 21,
+        'Casual': 597,
+        'Adventure': 21,
         'TwoD': 3871,
         'ThreeD': 4191,
-        #'Simulation': 599,
-        #'Strategy': 9,
-        #'RPG': 122,
-        #'Puzzle': 1664,
+        'Simulation': 599,
+        'Strategy': 9,
+        'RPG': 122,
+        'Puzzle': 1664,
         'Horror': 1667,
         'Sports': 701
 }
@@ -38,7 +38,7 @@ tag_dict = {
 #   'name': str
 def get_all_steam_apps() -> list[dict]:
     url = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
-    response = requests.get(url)
+    response = requests.get(url, timeout=10)
     data = response.json()
     return data['applist']['apps']
 
@@ -54,7 +54,7 @@ def get_games_by_tag(tag: str, count: int) -> list[dict]:
         start = (fetch * 100) + 1
         url = f'https://store.steampowered.com/search/results/?query=&start={start}&count={count}&dynamic_data=&force_infinite=1&tags={tag_id}&supportedlang=english&ndl=1&snr=1_7_7_240_7&infinite=1'
 
-        response = requests.get(url).json()
+        response = requests.get(url, timeout=10).json()
 
         soup = BeautifulSoup(response['results_html'], 'html.parser')
         all_games_html = soup.find_all('a', class_='search_result_row ds_collapse_flag')
@@ -118,7 +118,7 @@ def get_store_response(app_id: int) -> requests.Response:
         'wants_mature_content': '1'
     }
 
-    response = requests.get(url, headers=headers, cookies=cookies)
+    response = requests.get(url, headers=headers, cookies=cookies, timeout=10)
     return response
 
 # >>> Getters
@@ -173,18 +173,18 @@ def has_store_page(app_id: int) -> bool:
 
 def is_valid_app_id(app_id: int) -> bool:
     url = f'https://store.steampowered.com/api/appdetails?appids={app_id}'
-    response = requests.get(url).json()
+    response = requests.get(url, timeout=10).json()
     return response[f'{app_id}']['success']
 
 def is_game(app_id: int) -> bool:
     url = f'https://store.steampowered.com/api/appdetails?appids={app_id}'
-    response = requests.get(url).json()
+    response = requests.get(url, timeout=10).json()
     return response[f'{app_id}']['data']['type'] == 'game'
 
 # >>> Validity Checks
 
 def download_ss(url: str, path: str):
-    response = requests.get(url)
+    response = requests.get(url, timeout=10)
     if response.status_code == 200:
         with open(path, 'wb') as f:
             for chunk in response.iter_content(1024):
@@ -271,11 +271,15 @@ def update_tag_info(game) -> None:
 
     set_str = '= 1, '.join(tag_names) + '= 1'
 
-    cursor.execute(
-        f'''
-        UPDATE games SET {set_str} WHERE app_id = {game["app_id"]};
-        '''
-    )
+    try:
+        cursor.execute(
+            f'''
+            UPDATE games SET {set_str} WHERE app_id = {game["app_id"]};
+            '''
+        )
+    except sqlite3.OperationalError as e:
+        print(f'❌ Could not update database for game: {game}. Skipping...')
+        return
 
     connection.commit()
     connection.close()
@@ -312,10 +316,9 @@ if __name__ == "__main__":
     if not data_dir.exists():
         os.mkdir(data_dir)
 
-    games_per_tag = 300
+    games_per_tag = 1000
 
-    with Pool(len(tag_dict)) as p:
-        download_w_tag_count = partial(download_ss_for_tag, count=games_per_tag)
-        p.map(download_w_tag_count, tag_dict.keys())
+    for tag in tag_dict.keys():
+        download_ss_for_tag(tag, count=games_per_tag)
 
 # >>> Entry
