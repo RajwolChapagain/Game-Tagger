@@ -316,9 +316,10 @@ if __name__ == "__main__":
     if not data_dir.exists():
         os.mkdir(data_dir)
 
-    games_per_tag = 1000
+    games_per_tag = 5000
 
-    for tag in tag_dict.keys():
-        download_ss_for_tag(tag, count=games_per_tag)
+    with Pool(len(tag_dict)) as p:
+        download_w_tag_count = partial(download_ss_for_tag, count=games_per_tag)
+        p.map(download_w_tag_count, tag_dict.keys())
 
 # >>> Entry
