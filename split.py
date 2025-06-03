@@ -14,6 +14,16 @@ def main():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
+    cursor.execute(
+        f'''DELETE FROM {SOURCE_TABLE}
+            WHERE rowid NOT IN (
+                SELECT MIN(rowid)
+                FROM {SOURCE_TABLE}
+                GROUP BY app_id
+            );
+        '''
+    );
+
     # Fetch all data from the source table
     cursor.execute(f"SELECT * FROM {SOURCE_TABLE}")
     rows = cursor.fetchall()
@@ -21,7 +31,6 @@ def main():
     # Get column names to recreate the schema
     col_names = [description[0] for description in cursor.description]
     columns_def = (f"{col_names[0]} INTEGER, " + ", ".join(f"{col} BOOLEAN" for col in col_names[1:]))
-
 
     # Shuffle and split
     random.shuffle(rows)
