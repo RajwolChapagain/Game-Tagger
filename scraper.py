@@ -63,6 +63,9 @@ def get_games_by_tag(tag: str, count: int) -> list[dict]:
             name = item.find('span', class_='title').text
             app_id = item.get('data-ds-appid')
             tag_ids = item.get('data-ds-tagids')
+            if tag_ids is None:
+                continue
+
             tag_ids = f'{tag_ids[:-1]},{tag_dict[tag]}]' # This is to ensure that the the tag list contains the tag passed in to this method
                                                          # It will cause duplicate tag ids in some cases
             result.append({'name': name, 'app_id': app_id, 'tag_ids': tag_ids})
@@ -317,9 +320,9 @@ if __name__ == "__main__":
         os.mkdir(data_dir)
 
     games_per_tag = 5000
-
-    with Pool(len(tag_dict)) as p:
+    tags = list(tag_dict.keys())
+    with Pool(len(tags)) as p:
         download_w_tag_count = partial(download_ss_for_tag, count=games_per_tag)
-        p.map(download_w_tag_count, tag_dict.keys())
+        p.map(download_w_tag_count, tags)
 
 # >>> Entry
