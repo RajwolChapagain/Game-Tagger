@@ -10,7 +10,7 @@ from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 
 model_path = Path('models/')
-model_name = 'd1000e5.pt'
+model_name = 'd5000e5.pt'
 
 model_save_path = model_path/model_name
 
