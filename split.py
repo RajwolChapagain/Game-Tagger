@@ -14,6 +14,7 @@ def main():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
+    # Delete duplicates
     cursor.execute(
         f'''DELETE FROM {SOURCE_TABLE}
             WHERE rowid NOT IN (
@@ -21,6 +22,17 @@ def main():
                 FROM {SOURCE_TABLE}
                 GROUP BY app_id
             );
+        '''
+    );
+
+    # Delete pre-existing train and test tables
+    cursor.execute(
+        f'''DROP TABLE IF EXISTS {TRAIN_TABLE};
+        '''
+    );
+
+    cursor.execute(
+        f'''DROP TABLE IF EXISTS {TEST_TABLE};
         '''
     );
 
