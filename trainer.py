@@ -88,7 +88,7 @@ model = MultiLabelClassifier(in_count = 3, hidden_count = 128, out_count = label
 loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(get_weights(data_path/db_file)).to(device))
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-epochs = 15
+epochs = 30
 
 model.to(device)
 
