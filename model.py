@@ -9,7 +9,7 @@ class MultiLabelClassifier(nn.Module):
                 nn.Conv2d(in_count, hidden_count, kernel_size=3, padding=1),
                 nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
-                nn.Dropout(p=0.2),
+                nn.Dropout(p=0.4),
                 nn.Conv2d(hidden_count, hidden_count, kernel_size=3, padding=1),
                 nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
@@ -19,7 +19,7 @@ class MultiLabelClassifier(nn.Module):
                 nn.Conv2d(hidden_count, hidden_count, kernel_size=3, padding=1),
                 nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
-                nn.Dropout(p=0.2),
+                nn.Dropout(p=0.3),
                 nn.Conv2d(hidden_count, hidden_count, kernel_size=3, padding=1),
                 nn.BatchNorm2d(hidden_count),
                 nn.ReLU(),
@@ -39,7 +39,10 @@ class MultiLabelClassifier(nn.Module):
                 nn.AdaptiveAvgPool2d((1,1)),
                 nn.Flatten(),
                 nn.Dropout(p=0.2),
-                nn.Linear(in_features=hidden_count,
+                nn.linear(in_features=hidden_count, 256),
+                nn.ReLU(),
+                nn.Dropout(p=0.2),
+                nn.Linear(in_features=256,
                           out_features=out_count)
         )
     
