@@ -138,7 +138,7 @@ for epoch in range(1, epochs+1):
         labels_truth = labels_truth.to(device)
 
         labels_pred = model(inputs)
-        if i == 0:
+        if i == 1:
             print(f'Sample prediction    : {(torch.sigmoid(labels_pred[0]) > threshold).float().cpu().tolist()}')
             print(f'Corresponding truth : {labels_truth[0].cpu().tolist()}')
 
