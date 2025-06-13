@@ -36,9 +36,10 @@ class MultiLabelClassifier(nn.Module):
                 nn.MaxPool2d(kernel_size=2, stride=2)
         ) 
         self.classifier = nn.Sequential(
+                nn.AdaptiveAvgPool2d((1,1)),
                 nn.Flatten(),
                 nn.Dropout(p=0.2),
-                nn.Linear(in_features=hidden_count * 32 * 32,
+                nn.Linear(in_features=hidden_count,
                           out_features=out_count)
         )
     
