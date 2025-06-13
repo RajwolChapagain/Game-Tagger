@@ -39,7 +39,7 @@ class MultiLabelClassifier(nn.Module):
                 nn.AdaptiveAvgPool2d((1,1)),
                 nn.Flatten(),
                 nn.Dropout(p=0.2),
-                nn.linear(in_features=hidden_count, 
+                nn.Linear(in_features=hidden_count, 
                           out_features=256),
                 nn.ReLU(),
                 nn.Dropout(p=0.2),
