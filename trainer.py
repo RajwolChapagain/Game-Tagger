@@ -173,12 +173,14 @@ plt.show()
 
 save = input('Do you want to save this model? [y/n] ')
 
-if save.lower() == 'y' or save.lower() == 'yes':
-    model_name = input('Enter model name: ')
+if save.lower() == 'n' or save.lower() == 'no':
+    exit()
 
-    model_path = Path('models')
-    model_path.mkdir(parents=True, exist_ok=True)
+model_name = input('Enter model name: ')
 
-    model_save_path = model_path/model_name
+model_path = Path('models')
+model_path.mkdir(parents=True, exist_ok=True)
 
-    torch.save(model.state_dict(), model_save_path)
+model_save_path = model_path/model_name
+
+torch.save(model.state_dict(), model_save_path)
