@@ -95,12 +95,15 @@ model.to(device)
 train_losses = []
 test_losses = []
 
-for epoch in range(epochs):
+for epoch in range(1, epochs+1):
+    print(f'Started training in epoch {epoch}')
     model.train()
 
     train_loss = 0
 
-    for inputs, labels_truth in train_dataloader:
+    for i, (inputs, labels_truth) in enumerate(train_dataloader, 1):
+        if i % 100 == 0:
+            print(f'Training batch {i}/{len(train_dataloader)}')
         inputs = inputs.to(device)
         labels_truth = labels_truth.to(device)
 
@@ -115,6 +118,8 @@ for epoch in range(epochs):
 
         optimizer.step()
         
+    print('Training complete\n')
+
     train_loss /= len(train_dataloader)
     train_losses.append(train_loss)
 
@@ -126,7 +131,9 @@ for epoch in range(epochs):
     metric_rec = MultilabelRecall(num_labels=label_count, threshold=threshold, average=None).to(device)
     metric_f1 = MultilabelF1Score(num_labels=label_count, threshold=threshold, average=None).to(device)
 
-    for i, (inputs, labels_truth) in enumerate(test_dataloader):
+    for i, (inputs, labels_truth) in enumerate(test_dataloader, 1):
+        if i % 50 == 0:
+            print(f'Testing batch {i}/{len(test_dataloader)}')
         inputs = inputs.to(device)
         labels_truth = labels_truth.to(device)
 
