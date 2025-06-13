@@ -10,14 +10,17 @@ from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 
 model_path = Path('models/')
-model_name = 'd5000e5.pt'
+model_name = 'd5000e30.pt'
 
 model_save_path = model_path/model_name
 
 num_labels = 12
 model = MultiLabelClassifier(in_count = 3, hidden_count = 128, out_count = num_labels)
 
-model.load_state_dict(torch.load(model_save_path))
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+model.load_state_dict(torch.load(model_save_path, 
+                                 map_location=torch.device(device)))
 
 def get_pred(img: Image) -> list[str]:
     data_transform = transforms.Compose([
