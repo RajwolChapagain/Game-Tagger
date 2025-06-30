@@ -316,7 +316,7 @@ def app_exists_in_db(app_id: int) -> bool:
 # Run and print
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Script for scraping in-game screenshots from Steam')
-    parser.add_argument('--count', type=int, help='Number of games to scrape per tag', default=100)
+    parser.add_argument('-c', '--count', type=int, help='Number of games to scrape per tag', default=100)
     args = parser.parse_args()
 
     data_dir = Path('./data')
