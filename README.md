@@ -32,7 +32,7 @@ NIX_CONFIG="experimental-features = nix-command flakes" nix develop
 ```
 Scrape the data:
 ```
-python3 scraper.py
+python3 scraper.py -c 20
 ```
 Split it into train and test sets:
 ```
@@ -40,7 +40,7 @@ python3 split.py
 ```
 Train the model:
 ```
-python3 trainer.py
+python3 trainer.py -e 5
 ```
 
 # 🔗 Deployed Example
