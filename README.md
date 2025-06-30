@@ -49,5 +49,5 @@ python3 trainer.py -e 5
 # 🔗 Deployed Example
 To see an example of a deployed model, visit the [project website](https://rajwolchapagain.github.io/Game-Tagger-Website/).
 
-## License
+# 🛡️ License
 This project is licensed under the [GNU General Public License v3.0 (GPL v3)](LICENSE).
