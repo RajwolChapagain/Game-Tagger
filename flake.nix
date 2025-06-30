@@ -46,7 +46,11 @@
 			  sqlitebrowser
 			] ++ python-packages;
 
-			shellHook = ''exec zsh'';
+			shellHook = ''
+				if which zsh &> /dev/null; then
+					exec zsh
+				fi
+			'';
 		};
 	};
 }
