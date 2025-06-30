@@ -88,12 +88,17 @@ model = MultiLabelClassifier(in_count = 3, hidden_count = 128, out_count = label
 loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(get_weights(data_path/db_file)).to(device))
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-epochs = 30
+epochs = 50
 
 model.to(device)
 
 train_losses = []
 test_losses = []
+
+stopping_patience = 4
+best_loss = float('inf')
+min_improvement = 1e-3
+epochs_without_improvement = 0
 
 for epoch in range(1, epochs+1):
     print(f'Started training in epoch {epoch}')
@@ -164,6 +169,17 @@ for epoch in range(1, epochs+1):
     print(f'\tRecall: {recall.cpu().tolist()}')
     print(f'\tF1 Score: {f1_score.cpu().tolist()}')
     print()
+
+    if best_loss - test_loss < min_improvement:
+        epochs_without_improvement += 1
+    else:
+        epochs_without_improvement = 0
+
+    if epochs_without_improvement == stopping_patience:
+        print(f'\nEarly stopping at epoch {epoch}')
+        break
+
+    best_loss = min(best_loss, test_loss)
 
 
 plt.plot(train_losses, label='train_loss')
