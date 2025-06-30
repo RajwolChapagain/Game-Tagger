@@ -4,6 +4,9 @@
 
 Game Tagger is a CNN-based machine learning model that tags games based on their in-game screenshots. It is a multi-label classifier built from the ground up and trained on data scraped from the Steam games store. This repository contains the complete code for scraping data from the Steam store and using it to create a fully-trained model using PyTorch.
 
+# 🔗 Deployed Example
+To see an example of a deployed model, visit the [project website](https://rajwolchapagain.github.io/Game-Tagger-Website/).
+
 # 🚀 Quickstart
 To get started, clone the repository:
 ```
@@ -45,9 +48,6 @@ Train the model:
 ```
 python3 trainer.py -e 5
 ```
-
-# 🔗 Deployed Example
-To see an example of a deployed model, visit the [project website](https://rajwolchapagain.github.io/Game-Tagger-Website/).
 
 # 🛡️ License
 This project is licensed under the [GNU General Public License v3.0 (GPL v3)](LICENSE).
