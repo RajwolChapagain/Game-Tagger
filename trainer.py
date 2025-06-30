@@ -2,6 +2,7 @@ import os
 import torch
 import random
 import sqlite3
+import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
@@ -11,6 +12,10 @@ from torchvision import datasets, transforms
 from model import MultiLabelClassifier
 from dataset import CustomDataset
 from torchmetrics.classification import MultilabelAccuracy, MultilabelPrecision, MultilabelRecall, MultilabelF1Score
+
+parser = argparse.ArgumentParser(description='Trainer script for model defined in model.py')
+parser.add_argument('-e', '--epochs', type=int, help='Maximum number of epochs to train', default=20)
+args = parser.parse_args()
 
 def show_image(img_array) -> None:
     plt.title(f'Size: {len(img_array[0])} x {len(img_array)}')
@@ -88,7 +93,7 @@ model = MultiLabelClassifier(in_count = 3, hidden_count = 128, out_count = label
 loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(get_weights(data_path/db_file)).to(device))
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-epochs = 50
+epochs = args.epochs
 
 model.to(device)
 
@@ -100,6 +105,7 @@ best_loss = float('inf')
 min_improvement = 1e-3
 epochs_without_improvement = 0
 
+print(f'Started training for {epochs} epochs')
 for epoch in range(1, epochs+1):
     print(f'Started training in epoch {epoch}')
     model.train()
