@@ -14,6 +14,10 @@ Install the nix package manager for entering the development environment:
 ```
 sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --daemon
 ```
+Restart the shell environment to get access to the nix command:
+```
+exec bash
+```
 Add yourself as a trusted user in nix.conf:
 ```
 echo "trusted-users = root $(whoami)" | sudo tee -a /etc/nix/nix.conf
