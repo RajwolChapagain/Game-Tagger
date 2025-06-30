@@ -3,6 +3,7 @@ import math
 import random
 import sqlite3
 import requests
+import argparse
 import subprocess
 from pathlib import Path
 from functools import partial
@@ -314,15 +315,18 @@ def app_exists_in_db(app_id: int) -> bool:
 
 # Run and print
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Script for scraping in-game screenshots from Steam')
+    parser.add_argument('--count', type=int, help='Number of games to scrape per tag', default=100)
+    args = parser.parse_args()
+
     data_dir = Path('./data')
 
     if not data_dir.exists():
         os.mkdir(data_dir)
 
-    games_per_tag = 5000
     tags = list(tag_dict.keys())
     with Pool(len(tags)) as p:
-        download_w_tag_count = partial(download_ss_for_tag, count=games_per_tag)
+        download_w_tag_count = partial(download_ss_for_tag, count=args.count)
         p.map(download_w_tag_count, tags)
 
 # >>> Entry
