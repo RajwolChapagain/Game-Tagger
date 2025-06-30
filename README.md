@@ -6,9 +6,21 @@ To get started, clone the repository:
 ```
 git clone https://github.com/RajwolChapagain/Game-Tagger.git
 ```
+Enter it:
+```
+cd Game-Tagger
+```
 Install the nix package manager for entering the development environment:
 ```
 sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --daemon
+```
+Add yourself as a trusted user in nix.conf:
+```
+echo "trusted-users = root $(whoami)" | sudo tee -a /etc/nix/nix.conf
+```
+Restart the nix daemon:
+```
+sudo systemctl restart nix-daemon.service
 ```
 Enter the development environment:
 ```
